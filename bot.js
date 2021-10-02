@@ -329,7 +329,3 @@ bot.action('info', context => {
 
 
 bot.launch();
-
-exports.bot = functions.https.onRequest((req, res) => {
-    bot.handleUpdate(req.body, res);
-})
