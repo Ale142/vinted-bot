@@ -1,2 +1,2 @@
 # vinted-bot
-Vinted Bot used to increase visual 
+Vinted bot to increase visual of products
