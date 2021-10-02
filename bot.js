@@ -1,7 +1,8 @@
 /** @type {typeof import('telegraf').Telegraf} */
 
 require('dotenv').config();
-
+const https = require('https');
+const { Telegraf } = require('telegraf');
 const bot = new Telegraf(process.env.TOKEN);
 
 const regex = new RegExp('^(https?:\\/\\/)?' + // protocol
@@ -11,8 +12,7 @@ const regex = new RegExp('^(https?:\\/\\/)?' + // protocol
     '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
     '(\\#[-a-z\\d_]*)?$', 'i');
 
-const https = require('https');
-const { Telegraf } = require('telegraf');
+
 let savedMenu = {
     reply_markup: {
         inline_keyboard: [
