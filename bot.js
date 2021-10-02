@@ -4,6 +4,7 @@ require('dotenv').config();
 const https = require('https');
 const { Telegraf } = require('telegraf');
 const bot = new Telegraf(process.env.TOKEN);
+let currentProduct = [{}]
 
 const regex = new RegExp('^(https?:\\/\\/)?' + // protocol
     '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
@@ -30,7 +31,8 @@ let savedMenu = {
 }
 let product_link;
 
-function increaseVisual(n) {
+function increaseVisual(n, chatid) {
+    let product_link = currentProduct.filter(p => p.chat_id === chatid)[0].product_link;
     for (i = 0; i < n; i++) {
         try {
             https.get(product_link);
@@ -63,7 +65,8 @@ bot.start((context) => {
 
 
 bot.action('reset', context => {
-    product_link = undefined;
+    currentProduct = currentProduct.filter(p => p.chat_id !== context.chat.id);
+    console.log(currentProduct);
     context.reply("Prodotto cancellato")
     savedMenu = {
         reply_markup: {
@@ -103,7 +106,11 @@ bot.on('text', context => {
         }
         bot.telegram.sendMessage(context.chat.id, "Inserisci un valido URL", savedMenu)
     } else {
-        product_link = context.update.message.text;
+
+        if (currentProduct.filter(p => p.chat_id === context.chat.id).length === 0)
+            currentProduct.push({ chat_id: context.chat.id, product_link: context.update.message.text });
+        else
+            currentProduct.filter(p => p.chat_id === context.chat_id).map(el => ({ chat_id: el.chat_id, product_link: context.update.message.text }))
         savedMenu = {
             reply_markup: {
                 inline_keyboard: [
@@ -143,7 +150,7 @@ bot.on('text', context => {
 
 bot.action("10", context => {
     try {
-        increaseVisual(10);
+        increaseVisual(10, context.chat.id);
         savedMenu = {
             reply_markup: {
                 inline_keyboard: [
@@ -184,7 +191,7 @@ bot.action("10", context => {
 
 bot.action("20", context => {
     try {
-        increaseVisual(20);
+        increaseVisual(20, context.chat.id);
         savedMenu = {
             reply_markup: {
                 inline_keyboard: [
@@ -224,7 +231,7 @@ bot.action("20", context => {
 })
 bot.action("30", context => {
     try {
-        increaseVisual(30);
+        increaseVisual(30, context.chat.id);
         savedMenu = {
             reply_markup: {
                 inline_keyboard: [
@@ -264,7 +271,7 @@ bot.action("30", context => {
 })
 bot.action("50", context => {
     try {
-        increaseVisual(50);
+        increaseVisual(50, context.chat.id);
         savedMenu = {
             reply_markup: {
                 inline_keyboard: [
@@ -297,7 +304,7 @@ bot.action("50", context => {
                 ]
             }
         }
-        bot.telegram.sendMessage(context.chat.id, `Aumentato il numero di visualizzazioni di 50`,)
+        bot.telegram.sendMessage(context.chat.id, `Aumentato il numero di visualizzazioni di 50`, savedMenu)
     } catch (error) {
         console.log(error);
     }
@@ -308,22 +315,11 @@ bot.action('add', context => {
     context.reply("Incolla il link del prodotto nella chat")
 
 })
-
-bot.command('n', context => {
-    if (!product_link) context.reply("Prima devi salvare un link con il comando: \\link");
-    else {
-        n = context.update.message.text.split(' ')[1].trim();
-        for (i = 0; i < n; i++) {
-
-            https.get(`Prodotto salvato ${product_link}`);
-        }
-    }
-})
-
 bot.action('info', context => {
-    if (product_link === undefined) bot.telegram.sendMessage(context.chat.id, `Nessun prodotto salvato`, savedMenu)
+    let tmp = currentProduct.filter(p => p.chat_id === context.chat.id)
+    if (tmp.length === 0) bot.telegram.sendMessage(context.chat.id, `Nessun prodotto salvato`, savedMenu)
     else
-        bot.telegram.sendMessage(context.chat.id, `Prodotto aggiunto: ${product_link}`, savedMenu)
+        bot.telegram.sendMessage(context.chat.id, `Prodotto aggiunto: ${tmp[0].product_link}`, savedMenu)
 
 })
 
